@@ -1,6 +1,7 @@
 import { ChatClient } from "@azure/communication-chat";
 import { AzureCommunicationTokenCredential } from "@azure/communication-common";
 import { CallClient } from "@azure/communication-calling";
+import { setLogLevel, createClientLogger, AzureLogger } from '@azure/logger';
 import { ConfigUtil } from "../Utils/ConfigUtil";
 import { ChatMessage } from "../Models/ChatMessage";
 import { Person } from "../Models/Person";
@@ -99,9 +100,19 @@ export class AcsMeetingNotificationClient implements INotificationClient {
     //Update mapping
     await mappingUtil.updateMapping(mapping, this.appAuthResult.accessToken);
     const ccreds = new AzureCommunicationTokenCredential(
-      acsUserInfo.commIdentityToken
+      acsUserInfo.acsToken//.commIdentityToken
     );
-    const callTeamsClient = new CallClient({});
+
+    let callTeamsClientOptions = {};
+
+    let useVerboseLogging = false;
+    if (useVerboseLogging) {
+      setLogLevel('verbose');
+      let logger = createClientLogger('ACS');
+      callTeamsClientOptions = { logger };
+    }
+
+    const callTeamsClient = new CallClient(callTeamsClientOptions);
     const callTeamsAgent = await callTeamsClient.createCallAgent(ccreds);
 
     if (!mapping.threadInfo?.joinUrl) {
@@ -134,14 +145,17 @@ export class AcsMeetingNotificationClient implements INotificationClient {
     this.chatClient = new ChatClient(ConfigUtil.AcsEndpoint, this.creds);
     //this.chatClient = new ChatClient(ConfigUtil.ACS_ENDPOINT, ccreds);
 
-    // Create a call client
-    const callClient = new CallClient({});
+    const disableMeetingCall = true;
+    if (!disableMeetingCall) {
+      // Create a call client
+      const callClient = new CallClient({});
 
-    // establish the call
-    const callAgent = await callClient.createCallAgent(this.creds, {
-      displayName: ConfigUtil.AcsGuestAccountName,
-    });
-    const meetingCall = callAgent.join(locator);
+      // establish the call
+      const callAgent = await callClient.createCallAgent(this.creds, {
+        displayName: ConfigUtil.AcsGuestAccountName,
+      });
+      const meetingCall = callAgent.join(locator);
+    }
 
     // start the realtime notifications
     console.log("Start listening to realtime ACS Notifications");

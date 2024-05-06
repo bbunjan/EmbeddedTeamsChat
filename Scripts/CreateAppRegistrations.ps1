@@ -5,7 +5,7 @@
 param (
     [Parameter(Mandatory = $true)]
     [string] $ApplicationName,
-    [string] $AccessToken,
+    [securestring] $AccessToken,
     [string[]] $SpaRedirectUris
 )
 try {

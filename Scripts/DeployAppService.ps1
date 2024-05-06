@@ -11,8 +11,9 @@ try {
     npm install
     npm run build
     Write-Host "Building Backend App"
-    dotnet clean -c Release
-    dotnet publish -c Release
+    dotnet clean ./EmbeddedChat.csproj -c Release
+    dotnet build ./EmbeddedChat.csproj -c Release
+    dotnet publish ./EmbeddedChat.csproj -c Release
     $publishPath = Join-Path -Path "." -ChildPath "bin" "Release" "net7.0" "publish"
     $deployZipPath = Join-Path -Path $publishPath -ChildPath "deploy.zip"
     $compressPath = Join-Path -Path $publishPath -ChildPath "*"

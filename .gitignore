@@ -364,3 +364,5 @@ __azurite*.json
 
 # generated files
 main.parameters.json
+
+.mono/

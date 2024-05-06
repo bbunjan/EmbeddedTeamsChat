@@ -103,7 +103,9 @@ try
         }
 
         # Get the access token
-        $token = (Get-AzAccessToken -ResourceTypeName MSGraph).token
+        $tokenString = (Get-AzAccessToken -ResourceTypeName MSGraph).token
+
+        $token = ConvertTo-SecureString $tokenString -AsPlainText -Force
 
         Write-Host "Creating App Registration"
         # Create the App Registration and update GNB Azure AD App
@@ -114,7 +116,7 @@ try
 
         Write-Host "Deploying resources to $($ResourceGroupName)"
         # Deploy the resources
-        New-AzResourceGroupDeployment -TemplateFile ./bicep/main.bicep -TemplateParameterFile ./bicep/main.parameters.json -ResourceGroupName $ResourceGroupName
+        New-AzResourceGroupDeployment -TemplateFile ./bicep/main.bicep -TemplateParameterFile ./bicep/main.parameters.json -ResourceGroupName $ResourceGroupName -Name "embeddedChatMain"
 
         # Create .env file
         Write-Host "Writing .env files locally"
@@ -146,8 +148,8 @@ try
             ./Scripts/AcsServicePrincipal.ps1
 
             # Deploy the ACS resource
-            New-AzResourceGroupDeployment -TemplateFile ./bicep/mainAcs.bicep -ResourceGroupName $ResourceGroupName -AppName $ApplicationName -AcsDataLocation $AcsDataLocation
-            $acsOutputs = (Get-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -Name "mainAcs").Outputs
+            New-AzResourceGroupDeployment -TemplateFile ./bicep/mainAcs.bicep -ResourceGroupName $ResourceGroupName -AppName $ApplicationName -AcsDataLocation $AcsDataLocation -Name "embeddedChatMainAcs"
+            $acsOutputs = (Get-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -Name "embeddedChatMainAcs").Outputs
 
             # set the ACS environment variables
             Add-Content -Path $envDevelopmentFilePath -Value "AcsEndpoint=https://$($acsOutputs.acsHostName.value)"
@@ -155,7 +157,7 @@ try
             Add-Content -Path $envDevelopmentFilePath -Value "AcsConnectionString=$(Get-AzKeyVaultSecret -VaultName "$($ApplicationName)kv" -Name 'AcsConnectionString' -AsPlainText)"
         }
 
-        $outputs = (Get-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -Name "main").Outputs
+        $outputs = (Get-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -Name "embeddedChatMain").Outputs
 
         Add-Content -Path $envDevelopmentFilePath -Value "ClientId=$($outputs.clientId.value)"
         Add-Content -Path $envDevelopmentFilePath -Value "ClientSecret=$(Get-AzKeyVaultSecret -VaultName "$($ApplicationName)kv" -Name 'ClientSecret' -AsPlainText)"
