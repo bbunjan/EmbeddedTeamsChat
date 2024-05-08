@@ -2,7 +2,7 @@
 param (    
     [Parameter(Mandatory=$true, 
     HelpMessage="Enter a name for the Embedded Chat Application")]
-    [ValidateLength(3,14)]
+    [ValidateLength(3,20)]
     [string]$ApplicationName,
 
     [Parameter(Mandatory=$true,
